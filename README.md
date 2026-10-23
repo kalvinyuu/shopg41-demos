@@ -81,3 +81,7 @@ Docs: <https://shopg41.com/docs> · API reference: `GET /api/docs` and
   shortcut); a hosted shopG41 cannot reach `localhost`.
 - No credentials are committed. `.env*`, `*.db` and `keys.json` are gitignored;
   each demo writes what it needs on first run.
+
+## License
+
+[MIT](LICENSE) © shopG41.
