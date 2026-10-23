@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "Preserve",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "noEmit": true
+  },
+  "exclude": ["dist", "node_modules"]
+}

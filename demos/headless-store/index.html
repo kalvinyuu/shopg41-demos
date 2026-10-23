@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Headless Store Demo — shopG41</title>
+  <style>
+    :root { color-scheme: light dark; }
+    body { font-family: system-ui, sans-serif; max-width: 900px; margin: 0 auto; padding: 2rem; }
+    h1 { font-size: 1.5rem; }
+    p { color: #666; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 1rem; }
+    .product { border: 1px solid #ccc; border-radius: 8px; padding: 0.75rem; display: flex; flex-direction: column; gap: 0.4rem; }
+    .product img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 4px; background: #eee; }
+    .product h3 { margin: 0; font-size: 0.95rem; }
+    .product .price { font-weight: bold; color: #2a2; margin: 0; }
+    .product button { margin-top: auto; }
+    .cart { border: 1px solid #ccc; border-radius: 8px; padding: 0.75rem 1rem; margin: 1rem 0; }
+    .cart .row { display: flex; justify-content: space-between; padding: 0.2rem 0; }
+    .delivery { border: 1px solid #ccc; border-radius: 8px; padding: 0.6rem 0.9rem; margin-bottom: 0.5rem; }
+    .delivery .head { display: flex; justify-content: space-between; }
+    .valid { color: #2a2; font-weight: bold; }
+    .status { font-family: ui-monospace, monospace; font-size: 0.8rem; white-space: pre-wrap; margin: 0.5rem 0; }
+    .error { color: #c33; }
+    .muted { color: #888; font-size: 0.85rem; }
+    button { padding: 0.5rem 0.9rem; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <h1>Headless Storefront</h1>
+  <p>A storefront built purely on the <code>@shopg41/sdk</code>: browse products →
+  cart → Stripe checkout → order appears, and <code>order.placed</code> /
+  <code>order.paid</code> webhooks fire in real time.</p>
+  <div id="root"></div>
+  <script type="module" src="./frontend.tsx"></script>
+</body>
+</html>

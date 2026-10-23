@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Multi-Tenant Demo — shopG41</title>
+  <style>
+    :root { color-scheme: light dark; }
+    body { font-family: system-ui, sans-serif; max-width: 900px; margin: 0 auto; padding: 2rem; }
+    h1 { font-size: 1.5rem; }
+    p { color: #666; }
+    .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .tenant { border: 1px solid #ccc; border-radius: 8px; padding: 1rem; }
+    .tenant h2 { margin-top: 0; }
+    .product { display: flex; justify-content: space-between; padding: 0.4rem 0; border-bottom: 1px dashed #ddd; }
+    .result { border: 1px solid #ccc; border-radius: 8px; padding: 0.75rem 1rem; margin: 1rem 0; }
+    .ok { color: #2a2; }
+    .bad { color: #c33; }
+    .status { font-family: ui-monospace, monospace; font-size: 0.8rem; white-space: pre-wrap; }
+    button { padding: 0.45rem 0.8rem; cursor: pointer; }
+    input { padding: 0.45rem; }
+    .muted { color: #888; font-size: 0.85rem; }
+  </style>
+</head>
+<body>
+  <h1>Multi-Tenant Isolation</h1>
+  <p>One shopG41 instance, two storefronts. Each tenant (subdomain) has its own
+  products, CMS and API keys — fully isolated on shared infrastructure.</p>
+  <div id="root"></div>
+  <script type="module" src="./frontend.tsx"></script>
+</body>
+</html>

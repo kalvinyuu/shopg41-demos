@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Storage + Functions Demo — shopG41</title>
+  <style>
+    :root { color-scheme: light dark; }
+    body { font-family: system-ui, sans-serif; max-width: 720px; margin: 0 auto; padding: 2rem; }
+    h1 { font-size: 1.5rem; }
+    p { color: #666; }
+    .panel { border: 1px solid #ccc; border-radius: 8px; padding: 1rem 1.25rem; margin-bottom: 1.5rem; }
+    .panel h2 { margin-top: 0; }
+    button { padding: 0.5rem 0.9rem; font-size: 0.9rem; cursor: pointer; }
+    .status { margin: 0.75rem 0; font-family: ui-monospace, monospace; font-size: 0.8rem; white-space: pre-wrap; word-break: break-all; }
+    img { max-width: 200px; border-radius: 6px; border: 1px solid #ccc; margin-top: 0.5rem; }
+    .error { color: #c33; }
+    pre { background: #111; color: #9c9; border-radius: 4px; padding: 0.75rem; font-size: 0.8rem; overflow-x: auto; }
+  </style>
+</head>
+<body>
+  <h1>Storage + Functions</h1>
+  <p>Two capabilities in one app: upload files to shopG41's <strong>R2/S3 storage</strong>,
+  and call your own <strong>serverless function</strong> through a shopG41 pipeline endpoint.</p>
+  <div id="root"></div>
+  <script type="module" src="./frontend.tsx"></script>
+</body>
+</html>

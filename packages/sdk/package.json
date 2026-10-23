@@ -1,0 +1,26 @@
+{
+  "name": "@shopg41/sdk",
+  "version": "0.1.0",
+  "description": "Typed JavaScript/TypeScript SDK for the shopG41 store platform",
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "main": "./dist/sdk.umd.cjs",
+  "module": "./dist/sdk.js",
+  "types": "./dist/types/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/types/index.d.ts",
+      "import": "./dist/sdk.js",
+      "require": "./dist/sdk.umd.cjs"
+    }
+  },
+  "scripts": {
+    "build": "vite build && tsc -p tsconfig.build.json"
+  },
+  "devDependencies": {
+    "typescript": "^7.0.2",
+    "vite": "^8.1.3"
+  }
+}

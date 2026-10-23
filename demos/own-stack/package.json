@@ -1,0 +1,19 @@
+{
+  "name": "own-stack-demo",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "bun --hot index.ts",
+    "wire": "bun wire.ts",
+    "mint-key": "bun mint-key.ts"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.4.2",
+    "@types/react": "^18.3.0",
+    "@types/react-dom": "^18.3.0"
+  }
+}

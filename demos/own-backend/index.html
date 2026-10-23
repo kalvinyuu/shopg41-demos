@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Own Backend Demo — shopG41</title>
+  <style>
+    :root { color-scheme: light dark; }
+    body { font-family: system-ui, sans-serif; max-width: 600px; margin: 0 auto; padding: 2rem; }
+    h1 { font-size: 1.5rem; }
+    form { display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 2rem; }
+    input, button { padding: 0.5rem; font-size: 1rem; }
+    button { cursor: pointer; }
+    .card { border: 1px solid #ccc; border-radius: 8px; padding: 1rem; margin-bottom: 1rem; display: flex; gap: 1rem; align-items: center; }
+    .card img { width: 80px; height: 80px; object-fit: cover; border-radius: 4px; }
+    .card h3 { margin: 0 0 0.25rem; }
+    .card p { margin: 0; color: #666; }
+    .price { font-weight: bold; color: #2a2; }
+  </style>
+</head>
+<body>
+  <h1>My Product DB</h1>
+  <p>This app writes products to a local SQLite database. shopG41 can query it via a pipeline endpoint.</p>
+  <div id="root"></div>
+  <script type="module" src="./frontend.tsx"></script>
+</body>
+</html>

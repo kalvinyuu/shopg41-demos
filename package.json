@@ -1,0 +1,17 @@
+{
+  "name": "shopg41-demos",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "demos/*"
+  ],
+  "scripts": {
+    "dev:own-backend": "cd demos/own-backend && bun run dev",
+    "dev:webhooks": "cd demos/webhooks && bun run dev",
+    "dev:storage-functions": "cd demos/storage-functions && bun run dev",
+    "dev:ai": "cd demos/ai && bun run dev",
+    "dev:headless-store": "cd demos/headless-store && bun run dev",
+    "dev:multi-tenant": "cd demos/multi-tenant && bun run dev",
+    "dev:own-stack": "cd demos/own-stack && bun run dev"
+  }
+}

@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Webhooks Demo — shopG41</title>
+  <style>
+    :root { color-scheme: light dark; }
+    body { font-family: system-ui, sans-serif; max-width: 760px; margin: 0 auto; padding: 2rem; }
+    h1 { font-size: 1.5rem; }
+    p { color: #666; }
+    .actions { display: flex; gap: 0.5rem; flex-wrap: wrap; margin: 1rem 0; }
+    button { padding: 0.5rem 0.9rem; font-size: 0.9rem; cursor: pointer; }
+    .status { margin: 0.5rem 0; font-family: ui-monospace, monospace; font-size: 0.8rem; white-space: pre-wrap; }
+    .delivery { border: 1px solid #ccc; border-radius: 8px; padding: 0.75rem 1rem; margin-bottom: 0.6rem; }
+    .delivery .head { display: flex; justify-content: space-between; align-items: center; }
+    .delivery .head code { font-size: 0.8rem; }
+    .valid { color: #2a2; font-weight: bold; }
+    .invalid { color: #c33; font-weight: bold; }
+    .raw { font-family: ui-monospace, monospace; font-size: 0.75rem; background: #111; color: #9c9; border-radius: 4px; padding: 0.5rem; margin-top: 0.5rem; overflow-x: auto; }
+    .empty { color: #888; font-style: italic; }
+    .error { color: #c33; }
+  </style>
+</head>
+<body>
+  <h1>Webhooks</h1>
+  <p>This app is the webhook <strong>receiver</strong>. shopG41 delivers signed events
+  (HMAC-SHA256 <code>X-ShopG41-Signature</code>) here in real time.</p>
+  <div id="root"></div>
+  <script type="module" src="./frontend.tsx"></script>
+</body>
+</html>

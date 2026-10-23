@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Capabilities Demo — shopG41</title>
+  <style>
+    :root { color-scheme: light dark; }
+    body { font-family: system-ui, sans-serif; max-width: 720px; margin: 0 auto; padding: 2rem; }
+    h1 { font-size: 1.5rem; }
+    p { color: #666; }
+    button { padding: 0.6rem 1rem; font-size: 1rem; cursor: pointer; }
+    .status { margin: 1rem 0; font-family: ui-monospace, monospace; font-size: 0.85rem; white-space: pre-wrap; }
+    .card { border: 1px solid #ccc; border-radius: 8px; padding: 1rem; margin-bottom: 1rem; }
+    .card h3 { margin: 0 0 0.25rem; }
+    .card .price { font-weight: bold; color: #2a2; margin: 0 0 0.5rem; }
+    .card .copy { border-left: 3px solid #67c; padding-left: 0.75rem; margin-top: 0.75rem; }
+    .card .copy p { margin: 0.25rem 0; }
+    .card .keywords { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-top: 0.5rem; }
+    .chip { font-size: 0.75rem; background: #eee; border-radius: 999px; padding: 0.15rem 0.6rem; }
+    .error { color: #c33; }
+    .muted { color: #888; font-size: 0.85rem; }
+  </style>
+</head>
+<body>
+  <h1>AI Capabilities</h1>
+  <p>Products live in a SQLite DB here. shopG41 runs a pipeline: <code>query</code> → <code>ai</code> → <code>transform</code> to generate marketing copy.</p>
+  <div id="root"></div>
+  <script type="module" src="./frontend.tsx"></script>
+</body>
+</html>
