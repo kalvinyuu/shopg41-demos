@@ -42,6 +42,21 @@ while `own-stack` has shopG41 forward *shoppers* to your backend (the external
 backend). `own-stack` is the Postgres version, and it is the one that works when
 your database is not on the platform's machine.
 
+### Same machine vs hosted platform
+
+`own-backend` and `ai` hold their data in SQLite, and the mechanism changes with
+where the platform runs:
+
+| Platform | How it reads the rows |
+|----------|-----------------------|
+| On this machine (local dev, self-hosted) | a `sqlite` data source — the platform opens the file |
+| Hosted (prod) | a signed HTTPS `function` step — the platform calls your app |
+
+SQLite has no network protocol, so the file must be on the platform's disk for
+the `sqlite` kind. Both `wire.ts` scripts support both: `--local` for the first,
+`BACKEND_URL` (a tunnel) for the second. The signed route runs on its own port
+(`3012`, `3013`) so the tunnel never exposes the write form.
+
 ## Quick start
 
 ```bash
@@ -76,9 +91,10 @@ Docs: <https://shopg41.com/docs> · API reference: `GET /api/docs` and
 - Every demo is a **Bun** app (`bun:sqlite`, `Bun.serve`, `bun --hot`). `node` will
   not run them.
 - Demos that need to *receive* calls from the platform (`webhooks`,
-  `storage-functions`, `own-stack`) need a URL the platform can reach. For local
-  dev that means a tunnel (or, for `own-stack`, its documented `--allow-loopback`
-  shortcut); a hosted shopG41 cannot reach `localhost`.
+  `storage-functions`, `own-backend`, `ai`, `own-stack`) need a URL the platform
+  can reach. For local dev that means a tunnel (or, for `own-stack`, its
+  documented `--allow-loopback` shortcut); a hosted shopG41 cannot reach
+  `localhost`.
 - No credentials are committed. `.env*`, `*.db` and `keys.json` are gitignored;
   each demo writes what it needs on first run.
 

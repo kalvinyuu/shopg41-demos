@@ -1,9 +1,13 @@
 import { Database } from "bun:sqlite"
+import { createHmac, timingSafeEqual } from "node:crypto"
 import index from "./index.html"
 import { ShopG41Client } from "../../packages/sdk/src/index"
 
 const PORT = Number(process.env.PORT || 3006)
 const DB_PATH = process.env.DB_PATH || `${import.meta.dir}/products.db`
+/** Signed surface the platform calls when this SQLite file is not on its machine. */
+const FUNCTION_PORT = Number(process.env.FUNCTION_PORT || 3013)
+const FUNCTION_SECRET = process.env.FUNCTION_SECRET || "ai-demo-secret"
 
 // ─────────────────────────────────────────────────────────────────────────────
 // SQLite product database — data lives HERE, shopG41 queries it on demand
@@ -73,6 +77,13 @@ function extractRows(content: string): Array<Record<string, unknown>> {
 }
 
 async function handleChatCompletions(req: Request): Promise<Response> {
+  // The platform's data-source test POSTs a ping here with no Authorization
+  // header, so answer it before the key check (same contract as a `function`
+  // data source). Real completions still need the bearer key below.
+  if (req.headers.get("x-shopg41-event") === "ping") {
+    return Response.json({ ok: true, pong: true })
+  }
+
   const auth = req.headers.get("authorization") ?? ""
   const suppliedKey = auth.replace(/^Bearer\s+/i, "")
 
@@ -196,3 +207,44 @@ Bun.serve({
 console.log(`AI Demo running at http://localhost:${PORT}`)
 console.log(`SQLite DB: ${DB_PATH}`)
 console.log(`Mock LLM: ${OPENAI_API_KEY ? "proxying to real OpenAI" : "POST /v1/chat/completions (deterministic)"}`)
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Signed surface — the `function` pipeline step POSTs `{ prev }` here with
+// `X-ShopG41-Signature` (HMAC-SHA256 of the raw body). Kept on its own listener
+// so a tunnel can expose the rows without exposing the demo UI.
+// ─────────────────────────────────────────────────────────────────────────────
+function sign(body: string): string {
+  return createHmac("sha256", FUNCTION_SECRET).update(body).digest("hex")
+}
+
+function verifySignature(body: string, received: string | null): boolean {
+  if (!received) return false
+  const expected = Buffer.from(sign(body), "hex")
+  let actual: Buffer
+  try {
+    actual = Buffer.from(received, "hex")
+  } catch {
+    return false
+  }
+  return expected.length === actual.length && timingSafeEqual(expected, actual)
+}
+
+Bun.serve({
+  port: FUNCTION_PORT,
+  routes: {
+    "/function": {
+      POST: async (req) => {
+        const body = await req.text()
+        if (!verifySignature(body, req.headers.get("x-shopg41-signature"))) {
+          return Response.json({ error: "Invalid signature" }, { status: 401 })
+        }
+        const rows = db
+          .query("SELECT id, name, price, image_url FROM products ORDER BY id DESC")
+          .all()
+        return Response.json({ rows, rowCount: rows.length })
+      },
+    },
+  },
+})
+
+console.log(`Signed function endpoint: http://localhost:${FUNCTION_PORT}/function`)
