@@ -103,6 +103,8 @@ async function ensureProducts(): Promise<number> {
       name: p.name,
       price: p.price,
       shopBy: "Demo",
+      // A product is only on the storefront when it is active.
+      inUse: true,
     })
     created++
     console.log(`   Created product "${p.name}" (£${p.price})`)

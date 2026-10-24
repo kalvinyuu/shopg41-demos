@@ -386,7 +386,23 @@ const dbSourceId = dbSource.body.id as number
 ok(`created the "${DB_DS_NAME}" data source (#${dbSourceId})`)
 
 const tested = await admin(`/api/admin/data-sources/${dbSourceId}/test`, { method: "POST" })
-ok(`connection test: ${tested.body?.ok ? "ok" : JSON.stringify(tested.body)}`)
+if (!tested.body?.ok) {
+  const detail = tested.body?.error || JSON.stringify(tested.body)
+  if (isLoopback(cfg.ownDatabaseUrl)) {
+    // A hosted platform cannot dial your laptop's Postgres, and an HTTP tunnel
+    // does not carry raw TCP. The push direction above is already verified.
+    await admin(`/api/admin/data-sources/${dbSourceId}`, { method: "DELETE" })
+    console.error(`
+   ! the pull direction needs a Postgres the platform can reach over the network
+     (a hosted database, or a TCP tunnel) — ${cfg.ownDatabaseUrl} is loopback.
+     The PUSH direction above is live and verified; revert it with --undo.
+`)
+    process.exit(0)
+  }
+  console.error(`   ✗ connection test failed: ${detail}`)
+  process.exit(1)
+}
+ok(`connection test: ok`)
 
 const endpoint = await admin("/api/admin/endpoints", {
   method: "POST",
