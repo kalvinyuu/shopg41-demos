@@ -36,23 +36,36 @@ bun run dev        # http://localhost:3008
 ## Wire it up
 
 Requirements: shopG41 running on `:3001`, plans seeded (`bun run seed-plans`),
-and valid Stripe test keys (signup creates a Stripe customer).
+valid Stripe test keys (signup creates a Stripe customer), and **email
+verification off** — with a mailer configured the platform deliberately hands out
+no session until the address is confirmed, so signup + key mint cannot be scripted
+in one go. Locally that means starting the platform without `EMAIL_FROM` /
+`AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY`.
 
 ```bash
 bun run wire
 ```
 
-The script signs up two users (with `subdomain` set), which auto-provisions
-the two tenants, then mints an admin API key per tenant, seeds each with a
-product + CMS entry + custom endpoint, and writes `keys.json`.
+The script signs up two users (with `subdomain` set), which auto-provisions the
+two tenants, then mints an admin API key per tenant with `X-Tenant` (the session
+cookie is scoped to the host it was issued on, so it is not valid on the store's
+subdomain), seeds each with a product + CMS entry + custom endpoint, and writes
+`keys.json`.
+
+Subdomains are run-scoped (`alpha-<run>`, `beta-<run>`): subdomains and store
+names are unique with no cascade delete, so fixed names would make the second run
+fail. The script reads back what the platform actually provisioned, which may be
+suffixed if a name is taken.
 
 Then open http://localhost:3008:
 
 - Add products to either storefront — they stay in their own tenant
-- Hit **Cross-tenant check** — Alpha's key against Beta's host is blocked
+- Hit **Cross-tenant check** — each key against the other store's **admin** API is
+  blocked (`401`). The check must be an admin route: `/api/products` is public and
+  answers by host for anyone, so a `200` there proves nothing.
 
-You can also open the raw storefronts:
-`http://alpha-store.localhost:3001` and `http://beta-store.localhost:3001`
+You can also open the raw storefronts printed by `wire` (e.g.
+`http://alpha-store-ab12cd.localhost:3001`).
 
 ## Files
 

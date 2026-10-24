@@ -11,6 +11,11 @@ const PASSWORD = process.env.DEMO_PASSWORD || "password123"
 const RUN_ID = Date.now().toString(36)
 const OUT_FILE = `${import.meta.dir}/keys.json`
 
+/** The store's own host, derived from the platform's (works for *.localhost and prod). */
+const PLATFORM_ORIGIN = new URL(PLATFORM_BASE)
+const tenantUrl = (subdomain: string) =>
+  `${PLATFORM_ORIGIN.protocol}//${subdomain}.${PLATFORM_ORIGIN.host}`
+
 interface TenantConfig {
   subdomain: string
   name: string
@@ -31,8 +36,11 @@ function cookiesFrom(res: Response): string {
   return all.map((c) => c.split(";")[0]).join("; ")
 }
 
-async function signUpAndMintKey(subdomain: string, displayName: string): Promise<{ apiKey: string }> {
-  const email = `${subdomain}-${RUN_ID}@demo.local`
+async function signUpAndMintKey(
+  subdomain: string,
+  displayName: string,
+): Promise<{ subdomain: string; name: string; apiKey: string }> {
+  const email = `${subdomain}@demo.local`
   console.log(`\n1. Signing up ${displayName} (${email}) → provisions tenant "${subdomain}"…`)
   const signup = await fetch(`${PLATFORM_BASE}/api/auth/sign-up/email`, {
     method: "POST",
@@ -51,12 +59,26 @@ async function signUpAndMintKey(subdomain: string, displayName: string): Promise
   }
   const cookies = cookiesFrom(signup)
 
-  // API keys are per-tenant; mint it on the tenant's own subdomain host.
-  const baseUrl = `http://${subdomain}.localhost:3001`
-  console.log(`   Minting admin API key on ${baseUrl}…`)
-  const keyRes = await fetch(`${baseUrl}/api/admin/api-keys`, {
+  // Provisioning may adjust the requested subdomain (and name) for uniqueness,
+  // so ask the session what it actually created rather than assuming.
+  const tenantRes = await fetch(`${PLATFORM_BASE}/api/users/me/tenant`, { headers: { Cookie: cookies } })
+  const provisioned = (tenantRes.ok
+    ? ((await tenantRes.json()) as { id: number; name: string; subdomain: string } | null)
+    : null) ?? null
+  const actualSubdomain = provisioned?.subdomain ?? subdomain
+  const tenantOverride = provisioned ? String(provisioned.id) : subdomain
+  if (provisioned && actualSubdomain !== subdomain) {
+    console.log(`   platform provisioned "${actualSubdomain}" (requested "${subdomain}" was taken)`)
+  }
+
+  // API keys are per-tenant, and the session cookie is scoped to the host it was
+  // issued on — so mint on the platform host and select the tenant with
+  // `X-Tenant` rather than jumping to the store's subdomain (the cookie would
+  // not be sent there, and every subdomain would need its own session).
+  console.log(`   Minting admin API key for "${actualSubdomain}"…`)
+  const keyRes = await fetch(`${PLATFORM_BASE}/api/admin/api-keys`, {
     method: "POST",
-    headers: { "Content-Type": "application/json", Cookie: cookies },
+    headers: { "Content-Type": "application/json", Cookie: cookies, "X-Tenant": tenantOverride },
     body: JSON.stringify({ name: "multi-tenant-demo", scopes: ["admin"] }),
   })
   const keyBody = (await keyRes.json()) as { key?: string; error?: string }
@@ -64,7 +86,7 @@ async function signUpAndMintKey(subdomain: string, displayName: string): Promise
     throw new Error(`API key mint failed (${keyRes.status}): ${JSON.stringify(keyBody).slice(0, 300)}`)
   }
   console.log(`   Got API key ${keyBody.key.slice(0, 12)}…`)
-  return { apiKey: keyBody.key }
+  return { subdomain: actualSubdomain, name: provisioned?.name ?? displayName, apiKey: keyBody.key }
 }
 
 // ── tiny PNG generator for product images ────────────────────────────────────
@@ -131,6 +153,7 @@ async function seedTenant(t: TenantConfig, product: { name: string; price: numbe
       name: product.name,
       price: product.price,
       shopBy: "Multi-Tenant Demo",
+      inUse: true,
     })
     console.log(`   Product "${product.name}" (£${product.price})`)
   } else {
@@ -171,11 +194,25 @@ async function seedTenant(t: TenantConfig, product: { name: string; price: numbe
 }
 
 async function main() {
-  const alpha = { subdomain: "alpha-store", name: "Alpha Store", baseUrl: `http://alpha-store.localhost:3001`, apiKey: "" }
-  const beta = { subdomain: "beta-store", name: "Beta Store", baseUrl: `http://beta-store.localhost:3001`, apiKey: "" }
+  // Run-scoped subdomains: subdomains are unique and a tenant delete has no
+  // cascade, so fixed names would make the second run fail. One run = one pair.
+  const alphaSub = `alpha-${RUN_ID}`
+  const betaSub = `beta-${RUN_ID}`
+  const alpha = { subdomain: alphaSub, name: "Alpha Store", baseUrl: tenantUrl(alphaSub), apiKey: "" }
+  const beta = { subdomain: betaSub, name: "Beta Store", baseUrl: tenantUrl(betaSub), apiKey: "" }
 
-  alpha.apiKey = (await signUpAndMintKey(alpha.subdomain, alpha.name)).apiKey
-  beta.apiKey = (await signUpAndMintKey(beta.subdomain, beta.name)).apiKey
+  for (const [tenant, displayName] of [
+    [alpha, "Alpha Store"],
+    [beta, "Beta Store"],
+  ] as const) {
+    const created = await signUpAndMintKey(tenant.subdomain, displayName)
+    Object.assign(tenant, {
+      subdomain: created.subdomain,
+      name: created.name,
+      baseUrl: tenantUrl(created.subdomain),
+      apiKey: created.apiKey,
+    })
+  }
 
   const tenants: TenantConfig[] = [alpha, beta]
   await Bun.write(OUT_FILE, JSON.stringify({ tenants }, null, 2))
@@ -187,8 +224,8 @@ async function main() {
 
   console.log(`
 Done! Two isolated tenants on one shopG41 instance:
-  Alpha → http://alpha-store.localhost:3001  (products, CMS, API key)
-  Beta  → http://beta-store.localhost:3001   (products, CMS, API key)
+  Alpha → ${alpha.baseUrl}  (products, CMS, API key)
+  Beta  → ${beta.baseUrl}   (products, CMS, API key)
 
 Open http://localhost:3008 to compare both storefronts side by side,
 add products to each, and run the cross-tenant access check.

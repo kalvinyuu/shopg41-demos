@@ -57,6 +57,12 @@ the `sqlite` kind. Both `wire.ts` scripts support both: `--local` for the first,
 `BACKEND_URL` (a tunnel) for the second. The signed route runs on its own port
 (`3012`, `3013`) so the tunnel never exposes the write form.
 
+One runtime note: the `sqlite` data source only works when the platform runs on
+**Bun**. `bun run dev` (Vite) runs the server under Node, where `bun:sqlite` does
+not exist — the connection test returns a 500 there. Use the Bun entry
+(`server.ts`) or the deployed binary for `--local`; the HTTPS shape works under
+either.
+
 ## Quick start
 
 ```bash

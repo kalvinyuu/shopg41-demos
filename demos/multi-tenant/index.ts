@@ -115,14 +115,20 @@ Bun.serve({
 
         async function probe(label: string, baseUrl: string, apiKey: string) {
           try {
-            const res = await fetch(`${baseUrl}/api/products`, {
+            // Must be an ADMIN route: the storefront's /api/products is public
+            // and answers by host for anyone, so a 200 there proves nothing
+            // about key scoping. The tenant boundary lives on /api/admin/*.
+            const res = await fetch(`${baseUrl}/api/admin/products`, {
               headers: { Authorization: `Bearer ${apiKey}` },
             })
             result.push({
               check: label,
               status: res.status,
-              isolated: res.status !== 200,
-              detail: res.status === 200 ? "data leaked!" : "blocked",
+              isolated: res.status === 401 || res.status === 403 || res.status === 404,
+              detail:
+                res.status === 200
+                  ? "data leaked — this key read another store's admin data"
+                  : `blocked (${res.status})`,
             })
           } catch {
             result.push({
@@ -134,8 +140,8 @@ Bun.serve({
           }
         }
 
-        await probe("alpha's API key on beta's storefront", beta!.baseUrl, alpha!.apiKey)
-        await probe("beta's API key on alpha's storefront", alpha!.baseUrl, beta!.apiKey)
+        await probe("alpha's API key on beta's admin API", beta!.baseUrl, alpha!.apiKey)
+        await probe("beta's API key on alpha's admin API", alpha!.baseUrl, beta!.apiKey)
 
         return Response.json({ results: result })
       },
