@@ -31,6 +31,16 @@ interface Delivery {
   body: string
 }
 
+/** GET /api/orders/session/:id — public, keyed by the Stripe session id. */
+interface GuestOrder {
+  id: number
+  date: string
+  status: string
+  total: number
+  kind: string
+  items: Array<{ name: string | null; image: string | null; price: number }>
+}
+
 function App() {
   const [products, setProducts] = useState<Product[]>([])
   const [cart, setCart] = useState<Record<number, number>>({})
@@ -39,6 +49,7 @@ function App() {
   const [deliveries, setDeliveries] = useState<Delivery[]>([])
   const [status, setStatus] = useState("")
   const [apiKey, setApiKey] = useState<boolean | null>(null)
+  const [guestOrder, setGuestOrder] = useState<GuestOrder | null>(null)
 
   const refreshOrders = useCallback(async () => {
     const res = await fetch("/api/orders")
@@ -50,6 +61,19 @@ function App() {
     const res = await fetch("/api/deliveries")
     const data = await res.json()
     setDeliveries(data.deliveries ?? [])
+  }, [])
+
+  useEffect(() => {
+    // Stripe sends the shopper back to the platform's /orders, not here, so the
+    // session id is kept locally: reopen this demo and your guest order loads
+    // without a key or a cookie.
+    const saved = localStorage.getItem("shopg41:lastSession")
+    if (saved) {
+      fetch(`/api/orders?session=${encodeURIComponent(saved)}`)
+        .then((r) => (r.ok ? r.json() : null))
+        .then((d) => d?.order && setGuestOrder(d.order))
+        .catch(() => {})
+    }
   }, [])
 
   useEffect(() => {
@@ -97,6 +121,8 @@ function App() {
         return
       }
       setStatus(`Redirecting to Stripe Checkout… (test card 4242 4242 4242 4242)`)
+      // Kept so the guest lookup can show this order after you come back.
+      if (data.sessionId) localStorage.setItem("shopg41:lastSession", data.sessionId)
       window.location.href = data.url
     } catch (e) {
       setStatus(`Error: ${(e as Error).message}`)
@@ -140,6 +166,21 @@ function App() {
       </div>
 
       <h2>Orders</h2>
+      {guestOrder && (
+        <div className="delivery">
+          <div className="head">
+            <code>Your order #{guestOrder.id}</code>
+            <span className="valid">{guestOrder.status}</span>
+          </div>
+          <p className="muted">
+            {guestOrder.items.map((i) => i.name).filter(Boolean).join(", ") || "—"} · £
+            {(guestOrder.total / 100).toFixed(2)} · {new Date(guestOrder.date).toLocaleString()}
+          </p>
+          <p className="muted">
+            Found by the Stripe session id alone — no login, no API key.
+          </p>
+        </div>
+      )}
       <button onClick={refreshOrders}>Refresh orders</button>
       {orders.length === 0 && <p className="muted">{apiKey === false ? "Set SHOPG41_API_KEY to list orders." : "No orders yet."}</p>}
       {orders.map((o) => (

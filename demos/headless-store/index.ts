@@ -139,8 +139,20 @@ Bun.serve({
     },
 
     "/api/orders": {
-      GET: async () => {
+      GET: async (req) => {
         try {
+          // Guest lookup: the shopper's own order by the Stripe session id —
+          // no API key, no cookie. This is what a headless front-end uses.
+          const session = new URL(req.url).searchParams.get("session")
+          if (session) {
+            const res = await fetch(
+              `${BASE_URL}/api/orders/session/${encodeURIComponent(session)}`,
+              { headers: TENANT ? { "X-Tenant": TENANT } : {} },
+            )
+            const body = await res.json().catch(() => ({ error: "Bad response" }))
+            return Response.json(body, { status: res.status })
+          }
+
           if (!API_KEY) {
             return Response.json({ orders: [], error: "Set SHOPG41_API_KEY to list orders" })
           }

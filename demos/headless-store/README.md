@@ -67,6 +67,26 @@ Copy the printed `whsec_...` into `shopG41/.env.local` as `STRIPE_WEBHOOK_SECRET
 > Without the webhook forward, checkout still works but shopG41 never creates
 > the order, so orders and the delivery feed stay empty.
 
+## Your order without a login (guest lookup)
+
+`admin.orders.list()` needs an API key, which a shopper never has. The platform
+also exposes a **public** lookup keyed by the Stripe Checkout Session id:
+
+```
+GET /api/orders/session/:sessionId
+```
+
+The shopper's front-end already holds that id — `POST /api/checkout/session`
+returns it, and Stripe substitutes it into the success redirect as `session_id`.
+It is unguessable, names exactly one order, and is scoped to the store, so
+another tenant's id is a `404`. The response carries status, total and items —
+never the customer's email or address.
+
+This demo keeps the id in `localStorage` and calls
+`/api/orders?session=…`, which proxies to that endpoint with no key. Reopen the
+demo after paying and your order loads. In a real storefront you would call it
+from your own success page.
+
 ## Files
 
 | File | Purpose |
